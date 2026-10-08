@@ -1,17 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multi-Stream Viewer</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Twitch Multiview — Sticky Board</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <div id="stream-grid" class="stream-grid">
-    <!-- Stream cards dynamically added here -->
+<header class="topbar">
+  <div class="brand"><span class="logo">◉</span><span>Twitch Multiview</span><span class="mode">STICKY BOARD</span><button id="fillScreen">Fill Screen</button></div>
+  <div class="toolbar">
+    <form id="addForm">
+      <input id="channelInput" placeholder="Twitch username" autocomplete="off" aria-label="Twitch username">
+      <button class="primary" type="submit">Add stream</button>
+    </form>
+    <button id="fitBtn" type="button">Fit all</button>
+    <button id="resetBtn" type="button">Reset layout</button>
+    <button id="chatBtn" type="button">Chat</button>
   </div>
+</header>
 
-  <script src="app.js"></script>
+<main id="workspace">
+  <div id="board">
+    <div id="grid"></div>
+    <div id="cards"></div>
+  </div>
+  <div class="board-help">Drag the header of any stream to move it • Drag the corner to resize • Drag empty space to pan • Wheel to zoom</div>
+</main>
+
+<aside id="chatPanel" class="chat-panel">
+  <div class="chat-head">
+    <strong id="chatTitle">Select a stream</strong>
+    <button id="closeChat" type="button" aria-label="Close chat">×</button>
+  </div>
+  <iframe id="chatFrame" title="Twitch chat" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>
+</aside>
+
+<script src="app.js"></script>
 </body>
 </html>
