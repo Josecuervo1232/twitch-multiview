@@ -48,36 +48,33 @@ input:focus{border-color:#9147ff}button{border:1px solid #3a3a40;background:#252
 }
 
 
-/* V14: the resize handle is a real DOM element, always visible, above Twitch */
+/* V15: invisible hit area, visible grip is just two diagonal lines */
 .stream-card > .resize-handle {
   display:block !important;
   visibility:visible !important;
   opacity:1 !important;
   position:absolute !important;
-  right:-1px !important;
-  bottom:-1px !important;
-  width:42px !important;
-  height:42px !important;
+  right:0 !important;
+  bottom:0 !important;
+  width:30px !important;
+  height:30px !important;
   z-index:2147483647 !important;
   pointer-events:auto !important;
   cursor:nwse-resize !important;
   touch-action:none !important;
-  background:rgba(145,71,255,.22) !important;
-  border-left:2px solid rgba(255,255,255,.75) !important;
-  border-top:2px solid rgba(255,255,255,.75) !important;
+  background:transparent !important;
+  border:0 !important;
   box-sizing:border-box !important;
 }
 .stream-card > .resize-handle::after {
-  content:"↘" !important;
+  content:"" !important;
   position:absolute !important;
-  right:4px !important;
-  bottom:1px !important;
-  width:auto !important;
-  height:auto !important;
+  right:3px !important;
+  bottom:3px !important;
+  width:14px !important;
+  height:14px !important;
   border:0 !important;
-  color:#fff !important;
-  font-size:22px !important;
-  font-weight:900 !important;
-  line-height:1 !important;
-  opacity:1 !important;
+  opacity:.9 !important;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M13 4L4 13M13 9L9 13' stroke='white' stroke-width='1.6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") no-repeat center/contain !important;
+  filter:drop-shadow(0 0 2px rgba(0,0,0,.9));
 }
