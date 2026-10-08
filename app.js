@@ -90,12 +90,71 @@ document.addEventListener("click", (e) => {
   render();
 }, true);
 
+
+// Custom resize handle.
+// Native CSS resize is disabled because the hover title bar lives outside the card bounds.
+let resizing = null;
+
+document.addEventListener("pointerdown", (e) => {
+  const handle = e.target.closest?.(".resize-handle");
+  if (!handle) return;
+  const card = handle.closest(".stream-card");
+  if (!card) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const ch = card.dataset.channel;
+  const startW = card.offsetWidth;
+  const startH = card.offsetHeight;
+  const startX = e.clientX;
+  const startY = e.clientY;
+
+  resizing = {ch, startW, startH, startX, startY, pointerId:e.pointerId};
+  card.setPointerCapture?.(e.pointerId);
+  selectCard(ch);
+}, true);
+
+document.addEventListener("pointermove", (e) => {
+  if (!resizing) return;
+  const p = positions[resizing.ch];
+  if (!p) return;
+
+  const w = Math.max(400, resizing.startW + (e.clientX - resizing.startX));
+  const h = Math.max(300, resizing.startH + (e.clientY - resizing.startY));
+
+  p.w = Math.round(w);
+  p.h = Math.round(h);
+
+  const card = document.querySelector(`.stream-card[data-channel="${CSS.escape(resizing.ch)}"]`);
+  if (card) {
+    card.style.width = p.w + "px";
+    card.style.height = p.h + "px";
+  }
+}, true);
+
+document.addEventListener("pointerup", () => {
+  if (!resizing) return;
+  save();
+  resizing = null;
+}, true);
+
+document.addEventListener("pointercancel", () => {
+  if (!resizing) return;
+  save();
+  resizing = null;
+}, true);
+
 function render(){
   cardsEl.innerHTML="";
   channels.forEach((ch,i)=>{
     const p=posFor(ch,i);
     const card=document.createElement("article");
-    card.className="stream-card";card.dataset.channel=ch;card.style.zIndex=String(10+i);
+    card.className="stream-card";
+    const resizeHandle=document.createElement("div");
+    resizeHandle.className="resize-handle";
+    resizeHandle.title="Resize stream";
+    card.appendChild(resizeHandle);card.dataset.channel=ch;card.style.zIndex=String(10+i);
     card.style.left=p.x+"px";card.style.top=p.y+"px";card.style.width=p.w+"px";card.style.height=p.h+"px";
     card.innerHTML=`<div class="card-head"><span class="channel">#${escapeHtml(ch)}</span><div class="card-actions">
       <button class="icon-btn chat" type="button">Chat</button>

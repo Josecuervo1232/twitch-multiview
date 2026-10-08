@@ -11,7 +11,7 @@ input:focus{border-color:#9147ff}button{border:1px solid #3a3a40;background:#252
 #board{position:absolute;left:0;top:0;width:10000px;height:7000px;transform-origin:0 0}
 #grid{position:absolute;inset:0;background-image:radial-gradient(circle,#36363b 1px,transparent 1px);background-size:32px 32px;opacity:.35;pointer-events:none}
 #cards{position:absolute;inset:0}
-.stream-card{position:absolute;width:560px;height:350px;background:#000;border:1px solid #29292f;border-radius:0;overflow:visible;resize:both;min-width:400px;min-height:300px;box-shadow:none}
+.stream-card{position:absolute;width:560px;height:350px;background:#000;border:1px solid #29292f;border-radius:0;overflow:visible;resize:none;min-width:400px;min-height:300px;box-shadow:none}
 .stream-card.selected{border-color:#9147ff;box-shadow:none}
 .card-head{position:absolute;z-index:9999;left:0;right:0;top:-34px;height:30px;background:rgba(18,18,20,.92);display:flex;align-items:center;justify-content:space-between;padding:0 7px;cursor:move;border:1px solid #33343a;border-bottom:0;border-radius:6px 6px 0 0;opacity:0;visibility:hidden;transition:opacity .12s ease,visibility .12s ease;pointer-events:none}
 .stream-card:hover .card-head,.stream-card.selected .card-head{opacity:1;visibility:visible;pointer-events:auto}
@@ -26,3 +26,28 @@ input:focus{border-color:#9147ff}button{border:1px solid #3a3a40;background:#252
 #fillScreen{font-weight:700}
 
 .card-actions{position:relative;z-index:10000;display:flex;gap:4px;pointer-events:auto}.icon-btn{position:relative;z-index:10001;pointer-events:auto;cursor:pointer}
+
+.resize-handle{
+  position:absolute;
+  z-index:10000;
+  right:-2px;
+  bottom:-2px;
+  width:18px;
+  height:18px;
+  cursor:nwse-resize;
+  pointer-events:auto;
+}
+.resize-handle::after{
+  content:"";
+  position:absolute;
+  right:3px;
+  bottom:3px;
+  width:10px;
+  height:10px;
+  border-right:2px solid rgba(255,255,255,.72);
+  border-bottom:2px solid rgba(255,255,255,.72);
+  opacity:0;
+  transition:opacity .12s ease;
+}
+.stream-card:hover .resize-handle::after,
+.stream-card.selected .resize-handle::after{opacity:1}
