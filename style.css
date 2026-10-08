@@ -11,7 +11,7 @@ input:focus{border-color:#9147ff}button{border:1px solid #3a3a40;background:#252
 #board{position:absolute;left:0;top:0;width:10000px;height:7000px;transform-origin:0 0}
 #grid{position:absolute;inset:0;background-image:radial-gradient(circle,#36363b 1px,transparent 1px);background-size:32px 32px;opacity:.35;pointer-events:none}
 #cards{position:absolute;inset:0}
-.stream-card{position:absolute;width:560px;height:315px;aspect-ratio:16/9;background:#000;border:1px solid #29292f;border-radius:0;overflow:visible;box-shadow:none;min-width:320px;min-height:180px}
+.stream-card{position:absolute;width:560px;height:315px;aspect-ratio:16/9;background:#000;border:1px solid #29292f;border-radius:0;overflow:visible;box-shadow:none;min-width:160px;min-height:90px}
 .stream-card.selected{border-color:#9147ff;box-shadow:none}
 .card-head{position:absolute;z-index:9999;left:0;right:0;top:-34px;height:30px;background:rgba(18,18,20,.92);display:flex;align-items:center;justify-content:space-between;padding:0 7px;cursor:move;border:1px solid #33343a;border-bottom:0;border-radius:6px 6px 0 0;opacity:0;visibility:hidden;transition:opacity .12s ease,visibility .12s ease;pointer-events:none}
 .stream-card:hover .card-head,.stream-card.selected .card-head{opacity:1;visibility:visible;pointer-events:auto}

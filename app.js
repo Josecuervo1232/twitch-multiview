@@ -27,7 +27,7 @@ function defaultPos(i){
 function posFor(ch,i){
   if(!positions[ch]) positions[ch]=defaultPos(i);
   const p=positions[ch];
-  p.w=Math.max(320,Number(p.w)||560);
+  p.w=Math.max(160,Number(p.w)||560);
   p.h=Math.round(p.w*9/16);
   return p
 }
@@ -48,30 +48,32 @@ function fillScreenBoard(){
   const vw=Math.max(1,workspace.clientWidth);
   const vh=Math.max(1,workspace.clientHeight);
 
-  // Find the grid whose 16:9 cells cover the most screen area.
+  // Pick the grid that gives the LARGEST 16:9 tiles while keeping every stream on screen.
   let best=null;
   for(let cols=1;cols<=n;cols++){
     const rows=Math.ceil(n/cols);
-    const cellW=vw/cols;
-    const cellH=cellW*9/16;
-    const usedH=cellH*rows;
-    const score=Math.min(vw, usedH);
-    const candidate={cols,rows,cellW,cellH,usedH,score};
-    if(!best || candidate.score>best.score) best=candidate;
+    const cellW=Math.min(vw/cols, (vh/rows)*16/9);
+    const empty=cols*rows-n;
+    if(!best || cellW>best.cellW+0.5 || (Math.abs(cellW-best.cellW)<=0.5 && empty<best.empty)){
+      best={cols,rows,cellW,empty};
+    }
   }
 
-  const cols=best.cols, rows=best.rows, cellW=best.cellW, cellH=best.cellH;
+  const cols=best.cols, rows=best.rows;
+  const cellW=Math.floor(best.cellW);
+  const cellH=Math.floor(cellW*9/16);
+  const gridW=cols*cellW, gridH=rows*cellH;
+  const offX=Math.floor((vw-gridW)/2), offY=Math.floor((vh-gridH)/2);
 
   channels.forEach((ch,i)=>{
-    const col=i%cols,row=Math.floor(i/cols);
+    const row=Math.floor(i/cols), col=i%cols;
+    // Center an incomplete last row so tiles stay flush against each other.
     const rowCount=Math.min(cols,n-row*cols);
-    // Last row gets full-width equal cells so there are no horizontal gaps.
-    const w=(row===rows-1 && rowCount<cols)?vw/rowCount:cellW;
-    const x=(row===rows-1 && rowCount<cols)?col*w:col*cellW;
-    positions[ch]={x,y:row*cellH,w,h:w*9/16};
+    const rowOffX=Math.floor((gridW-rowCount*cellW)/2);
+    positions[ch]={x:offX+rowOffX+col*cellW, y:offY+row*cellH, w:cellW, h:cellH};
   });
 
-  // Put the board at the top-left and reset zoom so cells map directly to the viewport.
+  // Reset view so tiles map 1:1 to the viewport.
   zoom=1;
   pan={x:0,y:0};
   save();
@@ -139,7 +141,7 @@ document.addEventListener("pointermove", (e) => {
 
   // Account for board zoom so the handle tracks the cursor correctly.
   const delta = (e.clientX - resizing.startX) / Math.max(zoom, 0.01);
-  const w = Math.max(320, Math.round(resizing.startW + delta));
+  const w = Math.max(160, Math.round(resizing.startW + delta));
   const h = Math.round(w * 9 / 16);
 
   p.w = w;
