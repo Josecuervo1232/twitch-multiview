@@ -43,27 +43,38 @@ function closeChat(){selected="";$("#chatPanel").classList.remove("open");$("#ch
 function fillScreenBoard(){
   const n=channels.length;
   if(!n) return;
-  const gap=0;
-  const viewportW=Math.max(1, window.innerWidth);
-  const viewportH=Math.max(1, window.innerHeight);
-  const cols=Math.ceil(Math.sqrt(n));
-  const rows=Math.ceil(n/cols);
-  const cellW=Math.floor(viewportW/cols);
-  const cellH=Math.floor(viewportH/rows);
+
+  const vw=Math.max(1,workspace.clientWidth);
+  const vh=Math.max(1,workspace.clientHeight);
+
+  // Find the grid whose 16:9 cells cover the most screen area.
+  let best=null;
+  for(let cols=1;cols<=n;cols++){
+    const rows=Math.ceil(n/cols);
+    const cellW=vw/cols;
+    const cellH=cellW*9/16;
+    const usedH=cellH*rows;
+    const score=Math.min(vw, usedH);
+    const candidate={cols,rows,cellW,cellH,usedH,score};
+    if(!best || candidate.score>best.score) best=candidate;
+  }
+
+  const cols=best.cols, rows=best.rows, cellW=best.cellW, cellH=best.cellH;
 
   channels.forEach((ch,i)=>{
-    const col=i%cols, row=Math.floor(i/cols);
-    const isLastRow = row===rows-1;
-    const rowCount = Math.min(cols, n-row*cols);
-    const w = isLastRow && rowCount<cols ? Math.floor(viewportW/rowCount) : cellW;
-    const x = isLastRow && rowCount<cols ? col*w : col*cellW;
-    const y = row*cellH;
-    const h = (row===rows-1) ? viewportH-y : cellH;
-    positions[ch]={x,y,w,h};
+    const col=i%cols,row=Math.floor(i/cols);
+    const rowCount=Math.min(cols,n-row*cols);
+    // Last row gets full-width equal cells so there are no horizontal gaps.
+    const w=(row===rows-1 && rowCount<cols)?vw/rowCount:cellW;
+    const x=(row===rows-1 && rowCount<cols)?col*w:col*cellW;
+    positions[ch]={x,y:row*cellH,w,h:w*9/16};
   });
+
+  // Put the board at the top-left and reset zoom so cells map directly to the viewport.
+  zoom=1;
+  pan={x:0,y:0};
   save();
   render();
-  document.querySelectorAll(".stream-card").forEach((c,i)=>c.style.zIndex=String(10+i));
 }
 
 
@@ -91,8 +102,8 @@ document.addEventListener("click", (e) => {
 }, true);
 
 
-// Custom resize handle.
-// Native CSS resize is disabled because the hover title bar lives outside the card bounds.
+// Custom 16:9 resize handle.
+// Width is the primary control; height is always width * 9 / 16.
 let resizing = null;
 
 document.addEventListener("pointerdown", (e) => {
@@ -102,38 +113,45 @@ document.addEventListener("pointerdown", (e) => {
   if (!card) return;
 
   e.preventDefault();
-  e.stopPropagation();
+  e.stopImmediatePropagation();
 
   const ch = card.dataset.channel;
-  const startW = card.offsetWidth;
-  const startH = card.offsetHeight;
-  const startX = e.clientX;
-  const startY = e.clientY;
+  const p = positions[ch];
+  if (!p) return;
 
-  resizing = {ch, startW, startH, startX, startY, pointerId:e.pointerId};
-  card.setPointerCapture?.(e.pointerId);
+  resizing = {
+    ch,
+    startX: e.clientX,
+    startW: card.getBoundingClientRect().width,
+    pointerId: e.pointerId
+  };
+  handle.setPointerCapture?.(e.pointerId);
   selectCard(ch);
 }, true);
 
 document.addEventListener("pointermove", (e) => {
   if (!resizing) return;
+  e.preventDefault();
+
   const p = positions[resizing.ch];
   if (!p) return;
 
-  const w = Math.max(400, resizing.startW + (e.clientX - resizing.startX));
-  const h = Math.max(300, resizing.startH + (e.clientY - resizing.startY));
+  // Account for board zoom so the handle tracks the cursor correctly.
+  const delta = (e.clientX - resizing.startX) / Math.max(zoom, 0.01);
+  const w = Math.max(320, Math.round(resizing.startW + delta));
+  const h = Math.round(w * 9 / 16);
 
-  p.w = Math.round(w);
-  p.h = Math.round(h);
+  p.w = w;
+  p.h = h;
 
   const card = document.querySelector(`.stream-card[data-channel="${CSS.escape(resizing.ch)}"]`);
   if (card) {
-    card.style.width = p.w + "px";
-    card.style.height = p.h + "px";
+    card.style.width = `${w}px`;
+    card.style.height = `${h}px`;
   }
 }, true);
 
-document.addEventListener("pointerup", () => {
+document.addEventListener("pointerup", (e) => {
   if (!resizing) return;
   save();
   resizing = null;
@@ -151,10 +169,7 @@ function render(){
     const p=posFor(ch,i);
     const card=document.createElement("article");
     card.className="stream-card";
-    const resizeHandle=document.createElement("div");
-    resizeHandle.className="resize-handle";
-    resizeHandle.title="Resize stream";
-    card.appendChild(resizeHandle);card.dataset.channel=ch;card.style.zIndex=String(10+i);
+    card.dataset.channel=ch;card.style.zIndex=String(10+i);
     card.style.left=p.x+"px";card.style.top=p.y+"px";card.style.width=p.w+"px";card.style.height=p.h+"px";
     card.innerHTML=`<div class="card-head"><span class="channel">#${escapeHtml(ch)}</span><div class="card-actions">
       <button class="icon-btn chat" type="button">Chat</button>
