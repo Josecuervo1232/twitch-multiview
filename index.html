@@ -10,30 +10,28 @@
 <header class="topbar">
   <div class="brand"><span class="logo">◉</span><span>Twitch Multiview</span></div>
   <div class="toolbar">
-    <input id="channelInput" placeholder="Twitch username" autocomplete="off">
-    <button id="addBtn" class="primary">Add stream</button>
-    <button data-layout="grid" class="preset">Grid</button>
+    <input id="channelInput" placeholder="Add Twitch username" autocomplete="off">
+    <button id="addBtn" class="primary">Add</button>
+    <button data-layout="grid" class="preset active">Grid</button>
     <button data-layout="focus" class="preset">Focus</button>
     <button id="chatBtn">Chat</button>
     <button id="clearBtn" class="danger">Clear</button>
   </div>
 </header>
-
 <main id="app">
   <section id="streams" class="streams"></section>
   <aside id="chatPanel" class="chat-panel">
     <div class="chat-head">
       <strong id="chatTitle">Select a stream</strong>
-      <button id="closeChat">×</button>
+      <button id="closeChat" aria-label="Close chat">×</button>
     </div>
     <iframe id="chatFrame" title="Twitch chat" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>
   </aside>
 </main>
-
 <div id="empty" class="empty">
   <div class="empty-icon">▦</div>
   <h1>Add Twitch streams</h1>
-  <p>Add up to 10 channels. Drag cards to rearrange them, resize from the bottom-right corner, and click a card to open its chat.</p>
+  <p>Add up to 10 channels. The layout automatically keeps Twitch players at a useful size and fills the available browser space.</p>
 </div>
 <script src="app.js"></script>
 </body>
