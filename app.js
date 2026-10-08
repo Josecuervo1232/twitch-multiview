@@ -39,12 +39,39 @@ function openChat(ch){
   $("#chatPanel").classList.add("open");selectCard(ch);save()
 }
 function closeChat(){selected="";$("#chatPanel").classList.remove("open");$("#chatFrame").src="about:blank";save()}
+
+function fillScreenBoard(){
+  const n=channels.length;
+  if(!n) return;
+  const gap=0;
+  const viewportW=Math.max(1, window.innerWidth);
+  const viewportH=Math.max(1, window.innerHeight);
+  const cols=Math.ceil(Math.sqrt(n));
+  const rows=Math.ceil(n/cols);
+  const cellW=Math.floor(viewportW/cols);
+  const cellH=Math.floor(viewportH/rows);
+
+  channels.forEach((ch,i)=>{
+    const col=i%cols, row=Math.floor(i/cols);
+    const isLastRow = row===rows-1;
+    const rowCount = Math.min(cols, n-row*cols);
+    const w = isLastRow && rowCount<cols ? Math.floor(viewportW/rowCount) : cellW;
+    const x = isLastRow && rowCount<cols ? col*w : col*cellW;
+    const y = row*cellH;
+    const h = (row===rows-1) ? viewportH-y : cellH;
+    positions[ch]={x,y,w,h};
+  });
+  save();
+  render();
+  document.querySelectorAll(".stream-card").forEach((c,i)=>c.style.zIndex=String(10+i));
+}
+
 function render(){
   cardsEl.innerHTML="";
   channels.forEach((ch,i)=>{
     const p=posFor(ch,i);
     const card=document.createElement("article");
-    card.className="stream-card";card.dataset.channel=ch;
+    card.className="stream-card";card.dataset.channel=ch;card.style.zIndex=String(10+i);
     card.style.left=p.x+"px";card.style.top=p.y+"px";card.style.width=p.w+"px";card.style.height=p.h+"px";
     card.innerHTML=`<div class="card-head"><span class="channel">#${escapeHtml(ch)}</span><div class="card-actions">
       <button class="icon-btn chat" type="button">Chat</button>
@@ -117,3 +144,6 @@ $("#resetBtn").onclick=()=>{
 };
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 render();
+
+const fillScreenBtn=document.getElementById("fillScreen");
+if(fillScreenBtn) fillScreenBtn.addEventListener("click",fillScreenBoard);
