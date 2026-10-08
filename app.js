@@ -27,7 +27,8 @@ function defaultPos(i){
 function posFor(ch,i){
   if(!positions[ch]) positions[ch]=defaultPos(i);
   const p=positions[ch];
-  p.w=Math.max(400,Number(p.w)||560);p.h=Math.max(300,Number(p.h)||350);
+  p.w=Math.max(320,Number(p.w)||560);
+  p.h=Math.round(p.w*9/16);
   return p
 }
 function applyBoard(){board.style.transform=`translate(${pan.x}px,${pan.y}px) scale(${zoom})`}
@@ -125,7 +126,7 @@ document.addEventListener("pointerdown", (e) => {
     startW: card.getBoundingClientRect().width,
     pointerId: e.pointerId
   };
-  handle.setPointerCapture?.(e.pointerId);
+  handle.setPointerCapture?.(e.pointerId); document.body.style.userSelect="none";
   selectCard(ch);
 }, true);
 
@@ -154,13 +155,13 @@ document.addEventListener("pointermove", (e) => {
 document.addEventListener("pointerup", (e) => {
   if (!resizing) return;
   save();
-  resizing = null;
+  resizing = null; document.body.style.userSelect="";
 }, true);
 
 document.addEventListener("pointercancel", () => {
   if (!resizing) return;
   save();
-  resizing = null;
+  resizing = null; document.body.style.userSelect="";
 }, true);
 
 function render(){
@@ -176,6 +177,11 @@ function render(){
       <button class="icon-btn full" type="button">Fullscreen</button>
       <button class="icon-btn remove" type="button">×</button></div></div>
       <iframe class="player" src="${playerUrl(ch)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${escapeHtml(ch)}"></iframe>`;
+    const handle=document.createElement("div");
+    handle.className="resize-handle always-visible";
+    handle.setAttribute("aria-label","Resize stream");
+    handle.title="Resize";
+    card.appendChild(handle);
     const head=card.querySelector(".card-head");
     head.addEventListener("pointerdown",e=>startCardDrag(e,card,ch));
     card.querySelector(".chat").onclick=e=>{e.stopPropagation();openChat(ch)};
