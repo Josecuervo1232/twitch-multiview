@@ -1,31 +1,44 @@
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:#0b0b0d;color:#efeff1;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;overflow:hidden}
-body{user-select:none}
-.topbar{height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;background:#18181b;border-bottom:1px solid #303036;position:relative;z-index:50}
-.brand{display:flex;align-items:center;gap:9px;font-weight:800;white-space:nowrap}.logo{color:#9147ff;font-size:24px}.mode{font-size:10px;letter-spacing:.08em;color:#a970ff;border:1px solid #4a356b;border-radius:999px;padding:3px 7px}
-.toolbar{display:flex;align-items:center;gap:7px;min-width:0}#addForm{display:flex;gap:6px}
-input{width:190px;background:#0e0e10;color:#efeff1;border:1px solid #3a3a40;border-radius:5px;padding:9px 10px;outline:none;user-select:text}
-input:focus{border-color:#9147ff}button{border:1px solid #3a3a40;background:#252529;color:#efeff1;border-radius:5px;padding:8px 11px;font-weight:700;cursor:pointer}button:hover{background:#303035}.primary{background:#9147ff;border-color:#9147ff}.primary:hover{background:#772ce8}
-#workspace{position:absolute;inset:58px 0 0;background:#0d0d0f;overflow:hidden;cursor:grab}
-#workspace.panning{cursor:grabbing}
-#board{position:absolute;left:0;top:0;width:10000px;height:7000px;transform-origin:0 0}
-#grid{position:absolute;inset:0;background-image:radial-gradient(circle,#36363b 1px,transparent 1px);background-size:32px 32px;opacity:.35;pointer-events:none}
-#cards{position:absolute;inset:0}
-.stream-card{position:absolute;width:560px;height:315px;aspect-ratio:16/9;background:#000;border:1px solid #29292f;border-radius:0;overflow:visible;box-shadow:none;min-width:320px;min-height:180px}
-.stream-card.selected{border-color:#9147ff;box-shadow:none}
-.card-head{position:absolute;z-index:9999;left:0;right:0;top:-34px;height:30px;background:rgba(18,18,20,.92);display:flex;align-items:center;justify-content:space-between;padding:0 7px;cursor:move;border:1px solid #33343a;border-bottom:0;border-radius:6px 6px 0 0;opacity:0;visibility:hidden;transition:opacity .12s ease,visibility .12s ease;pointer-events:none}
-.stream-card:hover .card-head,.stream-card.selected .card-head{opacity:1;visibility:visible;pointer-events:auto}
-.channel{font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 3px #000;padding-top:2px}.card-actions{display:flex;gap:4px}
-.icon-btn{position:relative;z-index:1002;pointer-events:auto;padding:4px 8px;font-size:11px;background:rgba(20,20,22,.88);backdrop-filter:blur(3px)}.remove{color:#ff7272}
-.player{position:absolute;left:0;top:0;width:100%;height:100%;border:0;display:block;background:#000;aspect-ratio:16/9}
-.board-help{position:absolute;left:14px;bottom:12px;z-index:10;background:rgba(24,24,27,.92);border:1px solid #34343a;border-radius:6px;padding:7px 10px;color:#aaaab5;font-size:12px;pointer-events:none}
-.chat-panel{position:absolute;z-index:100;right:0;top:58px;width:430px;height:calc(100% - 58px);background:#18181b;border-left:1px solid #303036;transform:translateX(100%);transition:transform .18s ease;display:flex;flex-direction:column}
-.chat-panel.open{transform:translateX(0)}.chat-head{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 11px;border-bottom:1px solid #303036;background:#18181b}.chat-head button{border:0;background:transparent;font-size:24px;padding:4px 8px}.chat-panel iframe{flex:1;width:100%;border:0;background:#0e0e10}
-@media(max-width:900px){.brand{display:none}.toolbar{flex:1;justify-content:flex-end}.toolbar input{width:150px}.chat-panel{width:min(430px,92vw)}}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-#fillScreen{font-weight:700}
+body {
+  background-color: #0f0f12;
+  color: #ffffff;
+  font-family: system-ui, -apple-system, sans-serif;
+  padding: 16px;
+}
 
-.card-actions{position:relative;z-index:10000;display:flex;gap:4px;pointer-events:auto}.icon-btn{position:relative;z-index:10001;pointer-events:auto;cursor:pointer}
+/* Flexible grid layout */
+.stream-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
 
- .resize-handle{position:absolute;z-index:100000;right:0;bottom:0;width:34px;height:34px;cursor:nwse-resize;pointer-events:auto}
-.resize-handle::after{content:"";position:absolute;right:5px;bottom:5px;width:16px;height:16px;border-right:3px solid rgba(255,255,255,.9);border-bottom:3px solid rgba(255,255,255,.9);opacity:.9}
+/* Stream container with fixed 16:9 aspect ratio & native resizing */
+.stream-card {
+  position: relative;
+  width: 480px;            /* Initial default width */
+  aspect-ratio: 16 / 9;    /* Maintains 16:9 ratio to completely eliminate black bars */
+  resize: horizontal;      /* Enables dragging bottom-right handle to resize */
+  overflow: hidden;        /* Required for CSS resize handle to work */
+  min-width: 280px;
+  max-width: 100%;
+  background-color: #000;
+  border-radius: 6px;
+  border: 1px solid #2a2a30;
+}
+
+/* Ensure embed fills entire container without borders */
+.stream-card iframe,
+.stream-card video {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  object-fit: cover;
+}
