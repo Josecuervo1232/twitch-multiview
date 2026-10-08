@@ -66,6 +66,30 @@ function fillScreenBoard(){
   document.querySelectorAll(".stream-card").forEach((c,i)=>c.style.zIndex=String(10+i));
 }
 
+
+// Stream controls use delegated capture handlers so the Twitch iframe can never swallow the X click.
+document.addEventListener("pointerdown", (e) => {
+  const btn = e.target.closest?.(".remove");
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+}, true);
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest?.(".remove");
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const card = btn.closest(".stream-card");
+  const ch = card?.dataset.channel;
+  if (!ch) return;
+  channels = channels.filter(x => x !== ch);
+  delete positions[ch];
+  if (selected === ch) closeChat();
+  save();
+  render();
+}, true);
+
 function render(){
   cardsEl.innerHTML="";
   channels.forEach((ch,i)=>{
