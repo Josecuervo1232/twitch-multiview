@@ -27,8 +27,8 @@ function defaultPos(i){
 function posFor(ch,i){
   if(!positions[ch]) positions[ch]=defaultPos(i);
   const p=positions[ch];
-  p.w=Math.max(160,Number(p.w)||560);
-  p.h=Math.round(p.w*9/16);
+  if(p.fill){p.w=Math.max(1,Number(p.w)||160);p.h=Math.max(1,Number(p.h)||90)}
+  else{p.w=Math.max(160,Number(p.w)||560);p.h=Math.round(p.w*9/16)}
   return p
 }
 function applyBoard(){board.style.transform=`translate(${pan.x}px,${pan.y}px) scale(${zoom})`}
@@ -47,6 +47,35 @@ function chatWidth(){
   return panel.classList.contains("open")?panel.offsetWidth:0
 }
 
+// Scale a 16:9 player so it fully covers a w x h box (crops the overflow, no black bars).
+function coverIframe(ifr,w,h){
+  const R=16/9;
+  let iw=w, ih=w/R;
+  if(ih<h){ih=h;iw=h*R}
+  ifr.style.width=iw+"px";ifr.style.height=ih+"px";
+  ifr.style.left=((w-iw)/2)+"px";ifr.style.top=((h-ih)/2)+"px"
+}
+
+// Pick the number of rows that keeps the tiles closest to 16:9 (least cropping).
+// Rows have equal height and tile counts differ by at most one, so streams stay a similar size.
+function bestRows(n,vw,vh){
+  const R=16/9;
+  let best=null;
+  for(let r=1;r<=n;r++){
+    const base=Math.floor(n/r), extra=n%r;
+    const parts=[];
+    for(let i=0;i<r;i++) parts.push(base+(i<extra?1:0));
+    let total=0;
+    parts.forEach(k=>{
+      const a=(vw/k)/(vh/r);
+      total+=k*Math.min(a,R)/Math.max(a,R)
+    });
+    const score=total/n;
+    if(!best||score>best.score+1e-9) best={parts,score}
+  }
+  return best
+}
+
 function fillScreenBoard(){
   const n=channels.length;
   if(!n) return;
@@ -54,29 +83,18 @@ function fillScreenBoard(){
   const vw=Math.max(1,workspace.clientWidth-chatWidth());
   const vh=Math.max(1,workspace.clientHeight);
 
-  // Pick the grid that gives the LARGEST 16:9 tiles while keeping every stream on screen.
-  let best=null;
-  for(let cols=1;cols<=n;cols++){
-    const rows=Math.ceil(n/cols);
-    const cellW=Math.min(vw/cols, (vh/rows)*16/9);
-    const empty=cols*rows-n;
-    if(!best || cellW>best.cellW+0.5 || (Math.abs(cellW-best.cellW)<=0.5 && empty<best.empty)){
-      best={cols,rows,cellW,empty};
+  const {parts}=bestRows(n,vw,vh);
+  const rows=parts.length;
+
+  // Tiles cover the whole area edge to edge. Each player is scaled up to cover its tile,
+  // so every pixel is video (the edges of the picture get cropped a little).
+  let idx=0;
+  parts.forEach((k,r)=>{
+    const y0=Math.round(vh*r/rows), y1=Math.round(vh*(r+1)/rows);
+    for(let c=0;c<k;c++){
+      const x0=Math.round(vw*c/k), x1=Math.round(vw*(c+1)/k);
+      positions[channels[idx++]]={x:x0,y:y0,w:x1-x0,h:y1-y0,fill:true};
     }
-  }
-
-  const cols=best.cols, rows=best.rows;
-  const cellW=Math.floor(best.cellW);
-  const cellH=Math.floor(cellW*9/16);
-  const gridW=cols*cellW, gridH=rows*cellH;
-  const offX=Math.floor((vw-gridW)/2), offY=Math.floor((vh-gridH)/2);
-
-  channels.forEach((ch,i)=>{
-    const row=Math.floor(i/cols), col=i%cols;
-    // Center an incomplete last row so tiles stay flush against each other.
-    const rowCount=Math.min(cols,n-row*cols);
-    const rowOffX=Math.floor((gridW-rowCount*cellW)/2);
-    positions[ch]={x:offX+rowOffX+col*cellW, y:offY+row*cellH, w:cellW, h:cellH};
   });
 
   // Reset view so tiles map 1:1 to the viewport.
@@ -145,6 +163,17 @@ document.addEventListener("pointermove", (e) => {
   const p = positions[resizing.ch];
   if (!p) return;
 
+  if (p.fill) {
+    // Manually resizing a filled tile goes back to a normal 16:9 tile.
+    p.fill = false;
+    const fc = document.querySelector(`.stream-card[data-channel="${CSS.escape(resizing.ch)}"]`);
+    if (fc) {
+      fc.classList.remove("fill");
+      const fi = fc.querySelector("iframe.player");
+      if (fi) fi.style.cssText = "";
+    }
+  }
+
   // Account for board zoom so the handle tracks the cursor correctly.
   const delta = (e.clientX - resizing.startX) / Math.max(zoom, 0.01);
   const w = Math.max(160, Math.round(resizing.startW + delta));
@@ -177,14 +206,15 @@ function render(){
   channels.forEach((ch,i)=>{
     const p=posFor(ch,i);
     const card=document.createElement("article");
-    card.className="stream-card";
+    card.className="stream-card"+(p.fill?" fill":"");
     card.dataset.channel=ch;card.style.zIndex=String(10+i);
     card.style.left=p.x+"px";card.style.top=p.y+"px";card.style.width=p.w+"px";card.style.height=p.h+"px";
     card.innerHTML=`<div class="card-head"><span class="channel">#${escapeHtml(ch)}</span><div class="card-actions">
       <button class="icon-btn chat" type="button">Chat</button>
       <button class="icon-btn full" type="button">Fullscreen</button>
       <button class="icon-btn remove" type="button">×</button></div></div>
-      <iframe class="player" src="${playerUrl(ch)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${escapeHtml(ch)}"></iframe>`;
+      <div class="player-wrap"><iframe class="player" src="${playerUrl(ch)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${escapeHtml(ch)}"></iframe></div>`;
+    if(p.fill) coverIframe(card.querySelector("iframe.player"),p.w,p.h);
     const handle=document.createElement("div");
     handle.className="resize-handle always-visible";
     handle.setAttribute("aria-label","Resize stream");
