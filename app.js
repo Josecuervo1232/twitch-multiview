@@ -13,7 +13,7 @@ function parentDomain(){return location.hostname}
 function playerUrl(ch){
   const u=new URL("https://player.twitch.tv/");
   u.searchParams.set("channel",ch);u.searchParams.set("parent",parentDomain());
-  u.searchParams.set("autoplay","false");u.searchParams.set("muted","true");return u.toString()
+  u.searchParams.set("autoplay","true");u.searchParams.set("muted","true");return u.toString()
 }
 function chatUrl(ch){
   const u=new URL(`https://www.twitch.tv/embed/${encodeURIComponent(ch)}/chat`);
