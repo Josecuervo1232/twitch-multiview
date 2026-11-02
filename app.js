@@ -17,7 +17,7 @@ function playerUrl(ch){
 }
 function chatUrl(ch){
   const u=new URL(`https://www.twitch.tv/embed/${encodeURIComponent(ch)}/chat`);
-  u.searchParams.set("parent",parentDomain());return u.toString()
+  u.searchParams.set("parent",parentDomain());return u.toString()+"&darkpopout"
 }
 function save(){localStorage.setItem("tm_channels",JSON.stringify(channels));localStorage.setItem("tm_positions",JSON.stringify(positions));localStorage.setItem("tm_zoom",String(zoom));localStorage.setItem("tm_pan",JSON.stringify(pan));localStorage.setItem("tm_chat",selected)}
 function defaultPos(i){
