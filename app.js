@@ -41,11 +41,17 @@ function openChat(ch){
 }
 function closeChat(){selected="";$("#chatPanel").classList.remove("open");$("#chatFrame").src="about:blank";save()}
 
+// Width of the chat panel when it is open (0 when closed), so fitting can leave room for it.
+function chatWidth(){
+  const panel=$("#chatPanel");
+  return panel.classList.contains("open")?panel.offsetWidth:0
+}
+
 function fillScreenBoard(){
   const n=channels.length;
   if(!n) return;
 
-  const vw=Math.max(1,workspace.clientWidth);
+  const vw=Math.max(1,workspace.clientWidth-chatWidth());
   const vh=Math.max(1,workspace.clientHeight);
 
   // Pick the grid that gives the LARGEST 16:9 tiles while keeping every stream on screen.
@@ -241,7 +247,8 @@ $("#fitBtn").onclick=()=>{
   const ps=channels.map((ch,i)=>posFor(ch,i));const minX=Math.min(...ps.map(p=>p.x)),minY=Math.min(...ps.map(p=>p.y));
   const maxX=Math.max(...ps.map(p=>p.x+p.w)),maxY=Math.max(...ps.map(p=>p.y+p.h));
   const r=workspace.getBoundingClientRect(), pad=50;
-  const sx=(r.width-pad*2)/(maxX-minX),sy=(r.height-pad*2)/(maxY-minY);
+  const availW=Math.max(1,r.width-chatWidth());
+  const sx=(availW-pad*2)/(maxX-minX),sy=(r.height-pad*2)/(maxY-minY);
   zoom=Math.min(1,Math.max(.35,Math.min(sx,sy)));
   pan.x=pad-minX*zoom;pan.y=pad-minY*zoom;save();applyBoard()
 };
