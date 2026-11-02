@@ -57,7 +57,8 @@ function coverIframe(ifr,w,h){
 }
 
 // Pick the number of rows that keeps the tiles closest to 16:9 (least cropping).
-// Rows have equal height and tile counts differ by at most one, so streams stay a similar size.
+// Tile counts per row differ by at most one. Row heights are proportional to 1/tilesInRow,
+// which gives every tile the same shape, so every stream is cropped by the same small amount.
 function bestRows(n,vw,vh){
   const R=16/9;
   let best=null;
@@ -65,13 +66,10 @@ function bestRows(n,vw,vh){
     const base=Math.floor(n/r), extra=n%r;
     const parts=[];
     for(let i=0;i<r;i++) parts.push(base+(i<extra?1:0));
-    let total=0;
-    parts.forEach(k=>{
-      const a=(vw/k)/(vh/r);
-      total+=k*Math.min(a,R)/Math.max(a,R)
-    });
-    const score=total/n;
-    if(!best||score>best.score+1e-9) best={parts,score}
+    const S=parts.reduce((t,k)=>t+1/k,0);
+    const a=vw*S/vh;
+    const score=Math.min(a,R)/Math.max(a,R);
+    if(!best||score>best.score+1e-9) best={parts,S,score}
   }
   return best
 }
@@ -83,14 +81,15 @@ function fillScreenBoard(){
   const vw=Math.max(1,workspace.clientWidth-chatWidth());
   const vh=Math.max(1,workspace.clientHeight);
 
-  const {parts}=bestRows(n,vw,vh);
-  const rows=parts.length;
+  const {parts,S}=bestRows(n,vw,vh);
 
   // Tiles cover the whole area edge to edge. Each player is scaled up to cover its tile,
   // so every pixel is video (the edges of the picture get cropped a little).
-  let idx=0;
-  parts.forEach((k,r)=>{
-    const y0=Math.round(vh*r/rows), y1=Math.round(vh*(r+1)/rows);
+  let idx=0, acc=0;
+  parts.forEach(k=>{
+    const y0=Math.round(vh*acc/S);
+    acc+=1/k;
+    const y1=Math.round(vh*acc/S);
     for(let c=0;c<k;c++){
       const x0=Math.round(vw*c/k), x1=Math.round(vw*(c+1)/k);
       positions[channels[idx++]]={x:x0,y:y0,w:x1-x0,h:y1-y0,fill:true};
