@@ -226,8 +226,10 @@ workspace.addEventListener("pointercancel",()=>{dragging=null;panning=null;works
 workspace.addEventListener("pointerdown",e=>{
   if(e.target.closest(".stream-card"))return;
   if(e.button!==0)return;
+  selectCard(""); // clicking empty space unfocuses the selected tile
   panning={startX:e.clientX,startY:e.clientY,startPanX:pan.x,startPanY:pan.y};workspace.classList.add("panning")
 });
+document.addEventListener("keydown",e=>{if(e.key==="Escape")selectCard("")});
 workspace.addEventListener("wheel",e=>{
   e.preventDefault();
   const factor=e.deltaY<0?1.08:.925;
